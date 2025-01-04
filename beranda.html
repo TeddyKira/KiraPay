@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment App</title>
+  <style>
+    /* Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      height: 100vh;
+      padding: 20px 0;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 400px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .app-header {
+      position: sticky;
+      top: 0;
+      background-color: #007bff;
+      color: #fff;
+      text-align: center;
+      padding: 20px 0;
+      font-size: 24px;
+      font-weight: bold;
+      z-index: 1000;
+    }
+
+    .balance-section {
+      text-align: center;
+      padding: 20px;
+      background: #eaf4ff;
+    }
+
+    .balance-section h2 {
+      margin: 10px 0;
+      font-size: 24px;
+      color: #007bff;
+    }
+
+    .btn-reload {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .menu {
+      display: flex;
+      justify-content: space-around;
+      padding: 15px;
+      background: #f8f9fa;
+    }
+
+    .menu button {
+      background-color: #f0f0f0;
+      border: none;
+      border-radius: 5px;
+      padding: 10px 15px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .menu button:hover {
+      background-color: #e0e0e0;
+    }
+
+    #content {
+      padding: 20px;
+      overflow-y: auto;
+      flex-grow: 1;
+      height: 400px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    form input {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    form button {
+      padding: 10px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    form button:hover {
+      background-color: #0056b3;
+    }
+
+    h3 {
+      margin-bottom: 15px;
+    }
+
+    ul {
+      list-style: none;
+    }
+
+    ul li {
+      padding: 10px 0;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .payment-methods input {
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="app-header">
+      <h1>KiraPay</h1>
+    </header>
+
+    <!-- Login Section -->
+    <div id="login">
+      <h3 style="text-align: center; padding: 20px 0;">Masuk ke Akun Anda</h3>
+      <form onsubmit="handleLogin(event)">
+        <input type="text" id="username" placeholder="Nama Pengguna" required>
+        <input type="email" id="email" placeholder="Email Anda" required>
+        <input type="tel" id="phone" placeholder="Nomor Telepon" required>
+        <button type="submit">Login</button>
+      </form>
+    </div>
+
+    <!-- Balance Section -->
+    <div id="mainApp" class="hidden">
+      <div class="balance-section">
+        <p>Saldo Anda</p>
+        <h2 id="balance">Rp 1.500.000</h2>
+        <button class="btn-reload" onclick="showTopUp()">Top Up</button>
+      </div>
+
+      <!-- Main Menu -->
+      <div class="menu">
+        <button onclick="showPay()">Bayar</button>
+        <button onclick="showTransfer()">Transfer</button>
+        <button onclick="showHistory()">Riwayat</button>
+        <button onclick="showProfile()">Profil</button>
+      </div>
+
+      <!-- Content Sections -->
+      <div id="content">
+        <!-- Payment Form -->
+        <div id="payment" class="hidden">
+          <h3>Pembayaran</h3>
+          <form onsubmit="handlePayment(event)">
+            <input type="number" id="paymentAmount" placeholder="Nominal Pembayaran" required>
+            <div class="payment-methods">
+              <label>
+                <input type="radio" name="paymentMethod" value="balance" checked> Gunakan Saldo
+              </label>
+              <label>
+                <input type="radio" name="paymentMethod" value="qr"> Gunakan QR Code
+              </label>
+            </div>
+            <button type="submit">Bayar</button>
+          </form>
+        </div>
+
+        <!-- Top-Up Form -->
+        <div id="top-up" class="hidden">
+          <h3>Top Up Saldo</h3>
+          <form onsubmit="handleTopUp(event)">
+            <input type="number" id="topUpAmount" placeholder="Nominal" required>
+            <button type="submit">Konfirmasi</button>
+          </form>
+        </div>
+
+        <!-- Transfer Form -->
+        <div id="transfer" class="hidden">
+          <h3>Transfer Uang</h3>
+          <form onsubmit="handleTransfer(event)">
+            <input type="text" id="transferTo" placeholder="Nomor Tujuan" required>
+            <input type="number" id="transferAmount" placeholder="Nominal" required>
+            <button type="submit">Transfer</button>
+          </form>
+        </div>
+
+        <!-- Transaction History -->
+        <div id="history" class="hidden">
+          <h3>Riwayat Transaksi</h3>
+          <ul id="transactionList">
+            <!-- Transactions will be dynamically added here -->
+          </ul>
+        </div>
+
+        <!-- Profile Section -->
+        <div id="profile" class="hidden">
+          <h3>Profil Pengguna</h3>
+          <p>Nama: <span id="profileName">Tidak Diketahui</span></p>
+          <p>Email: <span id="profileEmail">Tidak Diketahui</span></p>
+          <p>No. HP: <span id="profilePhone">Tidak Diketahui</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let balance = 1500000;
+    const transactions = [];
+    let username = "";
+    let email = "";
+    let phone = "";
+
+    function hideAll() {
+      document.querySelectorAll("#content > div").forEach((section) => {
+        section.classList.add("hidden");
+      });
+    }
+
+    function updateBalance() {
+      document.getElementById("balance").innerText = `Rp ${balance.toLocaleString()}`;
+    }
+
+    function handleLogin(event) {
+      event.preventDefault();  // Prevent form submission from reloading the page
+    
+      const usernameInput = document.getElementById("username").value;
+      const emailInput = document.getElementById("email").value;
+      const phoneInput = document.getElementById("phone").value;
+
+      // Validate if inputs are not empty
+      if (usernameInput && emailInput && phoneInput) {
+        username = usernameInput;
+        email = emailInput;
+        phone = phoneInput;
+
+        // Update profile information
+        document.getElementById("profileName").innerText = username;
+        document.getElementById("profileEmail").innerText = email;
+        document.getElementById("profilePhone").innerText = phone;
+
+        // Switch to the main app view after successful login
+        document.getElementById("login").classList.add("hidden");
+        document.getElementById("mainApp").classList.remove("hidden");
+
+        alert(`Login berhasil! Selamat datang, ${username}`);
+      } else {
+        alert("Harap isi semua data dengan benar!");
+      }
+    }
+
+    function showPay() {
+      hideAll();
+      document.getElementById("payment").classList.remove("hidden");
+    }
+
+    function handlePayment(event) {
+      event.preventDefault();  // Prevent form submission from reloading the page
+
+      const amount = parseInt(document.getElementById("paymentAmount").value);
+      const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+
+      // Validate payment amount
+      if (amount > 0) {
+        if (paymentMethod === "balance") {
+          // Process payment using balance
+          if (amount <= balance) {
+            balance -= amount;
+            transactions.push(`Pembayaran menggunakan saldo - Rp ${amount.toLocaleString()}`);
+            updateBalance();
+            alert("Pembayaran berhasil menggunakan saldo!");
+          } else {
+            alert("Saldo tidak mencukupi untuk melakukan pembayaran.");
+          }
+        } else if (paymentMethod === "qr") {
+          // Process payment using QR (Just a simulation)
+          alert("Pembayaran berhasil menggunakan QR Code!");
+          transactions.push(`Pembayaran menggunakan QR Code - Rp ${amount.toLocaleString()}`);
+        }
+
+        // Clear payment amount after processing
+        document.getElementById("paymentAmount").value = "";
+      } else {
+        alert("Nominal pembayaran tidak valid!");
+      }
+    }
+
+    function showTopUp() {
+      hideAll();
+      document.getElementById("top-up").classList.remove("hidden");
+    }
+
+    function handleTopUp(event) {
+      event.preventDefault();
+      const amount = parseInt(document.getElementById("topUpAmount").value);
+      if (amount > 0) {
+        balance += amount;
+        transactions.push(`Top Up Rp ${amount.toLocaleString()}`);
+        updateBalance();
+        alert("Top Up berhasil!");
+      } else {
+        alert("Nominal tidak valid!");
+      }
+    }
+
+    function showTransfer() {
+      hideAll();
+      document.getElementById("transfer").classList.remove("hidden");
+    }
+
+    function handleTransfer(event) {
+      event.preventDefault();
+      const to = document.getElementById("transferTo").value;
+      const amount = parseInt(document.getElementById("transferAmount").value);
+      if (amount > 0 && amount <= balance) {
+        balance -= amount;
+        transactions.push(`Transfer ke ${to} - Rp ${amount.toLocaleString()}`);
+        updateBalance();
+        alert("Transfer berhasil!");
+      } else {
+        alert("Saldo tidak mencukupi atau nominal tidak valid!");
+      }
+    }
+
+    function showHistory() {
+      hideAll();
+      document.getElementById("history").classList.remove("hidden");
+      const transactionList = document.getElementById("transactionList");
+      transactionList.innerHTML = "";
+      transactions.forEach((transaction) => {
+        const li = document.createElement("li");
+        li.textContent = transaction;
+        transactionList.appendChild(li);
+      });
+    }
+
+    function showProfile() {
+      hideAll();
+      document.getElementById("profile").classList.remove("hidden");
+    }
+  </script>
+</body>
+</html>
